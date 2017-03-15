@@ -145,6 +145,67 @@ function setRem() {
 		        <span></span>
 		    </nav>
 		</div>
+		<section class="tab">
+			<header class="tabHeader">
+				<h2>MV首播</h2>
+				<a href="#">更多</a>
+			</header>
+			<nav class="tabNav">
+				<a href="javascript:;" class="J_area cur" data-area="all">全部</a>
+				<a href="javascript:;" class="J_area" data-area="ml">内地</a>
+				<a href="javascript:;" class="J_area" data-area="ht">港台</a>
+				<a href="javascript:;" class="J_area" data-area="us">欧美</a>
+				<a href="javascript:;" class="J_area" data-area="kr">韩国</a>
+				<a href="javascript:;" class="J_area" data-area="jp">日本</a>
+				<span></span>
+			</nav>
+			<section class="tabList">
+				<ul class="tabNext">
+					loading
+				</ul>
+				<ul class="tabShow">
+					<li>
+						<a href="#">
+							<img src="img/img.jpg"/>
+							<span>当我们混在一起 夏日泳池版</span>
+						</a>
+					</li>
+					<li>
+						<a href="#">
+							<img src="img/img.jpg"/>
+							<span>当我们混在一起 夏日泳池版</span>
+						</a>
+					</li>
+					<li>
+						<a href="#">
+							<img src="img/img.jpg"/>
+							<span>当我们混在一起 夏日泳池版</span>
+						</a>
+					</li>
+					<li>
+						<a href="#">
+							<img src="img/img.jpg"/>
+							<span>当我们混在一起 夏日泳池版</span>
+						</a>
+					</li>
+					<li>
+						<a href="#">
+							<img src="img/img.jpg"/>
+							<span>当我们混在一起 夏日泳池版</span>
+						</a>
+					</li>
+					<li>
+						<a href="#">
+							<img src="img/img.jpg"/>
+							<span>当我们混在一起 夏日泳池版</span>
+						</a>
+					</li>
+				</ul>
+				<ul class="tabNext">
+					loading
+				</ul>
+			</section>
+		</section>
 	</div>
 </section>
 <script src="js/transform.js"></script>
@@ -181,6 +242,99 @@ function navShow() {
 		}
 	);
 }
+tab();
+function tab(){
+	var tabList = document.querySelectorAll(".tabList");
+	var tabNav = document.querySelectorAll(".tabNav");
+	var width = tabNav[0].offsetWidth;
+	for(var i = 0; i < tabNav.length; i++) {
+		swipe(tabNav[i],tabList[i]);
+	}
+	function swipe(nav,list){
+		cssTransform(list,"translateX",-width);
+		var startPoint = 0;
+		var startX = 0;
+		var now = 0;
+		var isMove = true;
+		var isFirst = true;
+		var next = document.querySelectorAll(".tabNext");
+		var isLoad = false;
+		list.addEventListener(
+			"touchstart",
+			function(e) {
+				if(isLoad) {
+					return;
+				}
+				list.style.transition = "none";
+				startPoint = e.changedTouches[0];
+				startX = cssTransform(list,"translateX");
+				isMove = true;
+				isFirst = true;
+			}
+		);
+		list.addEventListener(
+			"touchmove",
+			function(e) {
+				if(isLoad) {
+					return;
+				}
+				if(!isMove) {
+					return;
+				}
+				var nowPoint = e.changedTouches[0];
+				var disX = nowPoint.pageX - startPoint.pageX;
+				var disY = nowPoint.pageY - startPoint.pageY;
+				if(isFirst) {
+					isFirst = false;
+					if(Math.abs(disY) > Math.abs(disX)) {
+						isMove = false;
+					}
+				}
+				if(isMove) {
+					cssTransform(list,"translateX",startX + disX);
+				}
+				if(Math.abs(disX) > width/2){
+					end(disX);
+				}
+			}
+		);
+		function end(disX){
+			isLoad = true;
+			var dir = disX/Math.abs(disX); //正 右侧  负左侧
+			var target = dir > 0? 0: -2*width;
+			list.style.transition = "300ms";
+			cssTransform(list,"translateX",target);
+			list.addEventListener(
+				"webkitTransitionEnd",
+				tranEnd
+			);
+			list.addEventListener(
+				"transitionend",
+				tranEnd
+			);
+		}
+		function tranEnd(){
+			list.removeEventListener(
+				"webkitTransitionEnd",
+				tranEnd
+			);
+			list.removeEventListener(
+				"transitionend",
+				tranEnd
+			);
+			for(var i = 0; i < next.length; i++){
+				next[i].style.opacity = 1;
+			}
+			setTimeout(
+				function(){ /* 在工作的时候，应该通过ajax 请求数据，然后修改 show里边内容，之后执行代码*/
+					list.style.transition = "none";
+					cssTransform(list,"translateX",-width);
+					isLoad = false;
+				},1000
+			)
+		}
+	}
+}
 function navSwipe() {
 	var navScroll = document.querySelector('#navScroll');
 	var navs = document.querySelector('#navs'); 
@@ -188,12 +342,21 @@ function navSwipe() {
 	var startX = 0;
 	var minX = navScroll.clientWidth - navs.offsetWidth;
 	var step = 1;
+	var lastX = 0; //上次的距离
+	var lastTime = 0;//上次的时间戳
+	var lastDis = 0;
+	var lastTimeDis = 0;
 	navScroll.addEventListener(
 		'touchstart', 
 		function(e) {
+			navs.style.transition = "none";
 			startPoint = e.changedTouches[0].pageX;
 			startX = cssTransform(navs,"translateX");
 			step = 1;
+			lastX = startX;
+			lastTime = new Date().getTime();
+			lastDis = 0;
+			lastTimeDis = 0;
 		}
 	);
 	navScroll.addEventListener(
@@ -202,6 +365,7 @@ function navSwipe() {
 			var nowPoint = e.changedTouches[0].pageX;
 			var dis = nowPoint - startPoint;
 			var left = startX + dis;
+			var nowTime = new Date().getTime();
 			if(left > 0) {
 				step = 1-left / navScroll.clientWidth; //根据超出长度计算系数大小，超出的越到 系数越小
 				left = parseInt(left*step);
@@ -214,10 +378,45 @@ function navSwipe() {
 				left = minX - over;
 				/*left = minX; */
 			}
+			lastDis = left-lastX; //距离差值
+			lastTimeDis = nowTime - lastTime; //时间差值
+			lastX = left;
+			lastTime = nowTime;
 			cssTransform(navs,"translateX",left);
 		}
 	);
+	navScroll.addEventListener(
+		'touchend', 
+		function (){
+			var speed = (lastDis/lastTimeDis)*300; //用距离差值/时间差值 = 速度   速度*系数 = 缓冲距离
+			var left = cssTransform(navs,"translateX");
+			var target = left + speed; //当前值 + 缓冲距离 = 目标点
+			var type = "cubic-bezier(.34,.92,.58,.9)";
+			var time = Math.abs(speed*.9);
+			time = time<300?300:time;
+			if(target > 0) {
+				target = 0;
+				type ="cubic-bezier(.08,1.44,.6,1.46)";
+			}
+			if(target < minX) {
+				target = minX;
+				type ="cubic-bezier(.08,1.44,.6,1.46)";
+			}
+			navs.style.transition = time+"ms " + type;
+			cssTransform(navs,"translateX",target);
+		}
+	);
 }
+/*
+	缓冲快慢，和我移动的最后一次移动速度有关系
+	速度快 缓冲距离就大
+	速度慢 缓冲距离就小
+	速度 =  距离 /时间
+	
+	距离 = 上次位置 和移动后位置的差值
+	时间 = 上次时间 和 移动后时间的差值
+	
+*/
 function scrollPic() {
 	var wrap = document.querySelector("#picTab");
 	var list = document.querySelector("#picList");
