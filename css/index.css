@@ -249,6 +249,7 @@ body {
 	width: 1.79rem;
 	height: 3px;
 	background: #6f900d;
+  transition: .3s cubic-bezier(.08,1.44,.6,1.46);
 }
 .tabList {
 	width: 300%;

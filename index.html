@@ -210,9 +210,24 @@ function setRem() {
 </section>
 <script src="js/transform.js"></script>
 <script>
+document.addEventListener("touchstart",
+	function(e) {
+		e.preventDefault();
+	}
+);
 navShow();
 scrollPic();
 navSwipe();
+/*
+search();
+function search() {
+	var wrap = document.querySelector(".wrap");
+	var input = document.querySelector('input');
+	wrap.onscroll = function() {
+		input.value = 1;
+	};
+}
+*/
 function navShow() {
 	var btn = document.querySelector("#menuBtn");
 	var nav = document.querySelector("#nav");
@@ -259,6 +274,8 @@ function tab(){
 		var isFirst = true;
 		var next = document.querySelectorAll(".tabNext");
 		var isLoad = false;
+		var navA = nav.getElementsByTagName('a');
+		var navActive = nav.getElementsByTagName('span')[0];
 		list.addEventListener(
 			"touchstart",
 			function(e) {
@@ -298,10 +315,30 @@ function tab(){
 				}
 			}
 		);
+		list.addEventListener(
+			"touchend",
+			function() {
+				if(isLoad) {
+					return ;
+				}	
+				list.style.transition = ".5s";
+				cssTransform(list,"translateX",-width);
+			}
+		);
 		function end(disX){
 			isLoad = true;
 			var dir = disX/Math.abs(disX); //正 右侧  负左侧
 			var target = dir > 0? 0: -2*width;
+			//console.log(dir);// -1 下一张   1 上一张
+			now -= dir;
+			//console.log(now);
+			if(now < 0) {
+				now = navA.length - 1;
+			} 	
+			if(now >= navA.length) {
+				now = 0;
+			}
+			//console.log(now);
 			list.style.transition = "300ms";
 			cssTransform(list,"translateX",target);
 			list.addEventListener(
@@ -314,6 +351,10 @@ function tab(){
 			);
 		}
 		function tranEnd(){
+			var left = navA[now].offsetLeft;
+			console.log(left);
+
+			cssTransform(navActive,"translateX",left);
 			list.removeEventListener(
 				"webkitTransitionEnd",
 				tranEnd
@@ -330,6 +371,9 @@ function tab(){
 					list.style.transition = "none";
 					cssTransform(list,"translateX",-width);
 					isLoad = false;
+					for(var i = 0; i < next.length; i++){
+						next[i].style.opacity = 0;
+					}
 				},1000
 			)
 		}
